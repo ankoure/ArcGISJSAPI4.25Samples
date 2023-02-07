@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Directions widget | Sample | ArcGIS Maps SDK for JavaScript 4.25</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <script>
+      require(["esri/Map", "esri/views/MapView", "esri/widgets/Directions", "esri/layers/RouteLayer"], function(
+        Map,
+        MapView,
+        Directions,
+        RouteLayer
+      ) {
+
+        // An authorization string used to access the basemap, geocoding and routing services
+        const apiKey = "AAPKd6517aa887304b5891f6b959ea426015CLWBA2qIMPI4-vgwnS0B8RGRBVMArpJu0IN2BUL-G6GZ_aa8NF-r_JvSnsWp_A2M";
+
+        // create a new RouteLayer, required for Directions widget
+        const routeLayer = new RouteLayer();
+
+        // new RouteLayer must be added to the map
+        const map = new Map({
+          basemap: "topo-vector",
+          layers: [routeLayer]
+        });
+
+        const view = new MapView({
+          zoom: 14,
+          center: [-118.24, 34.05],
+          container: "viewDiv",
+          map: map
+        });
+
+        // new RouteLayer must be added to Directions widget
+        let directionsWidget = new Directions({
+          layer: routeLayer,
+          apiKey,
+          view
+        });
+
+        // Add the Directions widget to the top right corner of the view
+        view.ui.add(directionsWidget, {
+          position: "top-right"
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

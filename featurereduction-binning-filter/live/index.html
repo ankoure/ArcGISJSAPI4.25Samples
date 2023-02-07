@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="initial-scale=1,maximum-scale=1,user-scalable=no"
+  />
+
+    <title>Binning - Filter by category | Sample | ArcGIS Maps SDK for JavaScript 4.25</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      #controls {
+        padding: 10px;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.25/"></script>
+
+    <script type="text/javascript">
+     require([
+       "esri/Map",
+       "esri/views/MapView",
+       "esri/layers/FeatureLayer",
+       "esri/widgets/Legend",
+       "esri/layers/support/LabelClass",
+       "esri/layers/support/AggregateField",
+     ], function (
+       Map,
+       MapView,
+       FeatureLayer,
+       Legend,
+       LabelClass,
+       AggregateField,
+     ) {
+
+      (async () => {
+
+        const colors = ["#48385f", "#995375", "#db4a5b", "#fc9a59", "#fee086"];
+
+        const featureReduction = {
+          type: "binning",
+          fields: [
+            new AggregateField({
+              name: "aggregateCount",
+              statisticType: "count"
+            })
+          ],
+          fixedBinLevel: 5,
+          labelsVisible: true,
+          labelingInfo: [ new LabelClass({
+            minScale: 577790.5542885,
+            maxScale: 0,
+            deconflictionStrategy: "none",
+            symbol: {
+              type: "text",  // autocasts as new TextSymbol()
+              color: "white",
+              haloColor: colors[0],
+              haloSize: 1.2,
+              font: {
+                family: "Noto Sans",
+                size: 10
+              }
+            },
+            labelExpressionInfo: {
+              expression: "Text($feature.aggregateCount, '#,###')"
+            }
+          })],
+          popupEnabled: true,
+          popupTemplate: {
+            title: "Oil and gas wells",
+            content: "This area has {aggregateCount} oil and gas wells.",
+          },
+          renderer: {
+            type: "simple",
+            symbol: {
+              type: "simple-fill",
+              color: [0, 255, 71, 1],
+              outline: null
+            },
+            visualVariables: [
+              {
+                type: "color",
+                field: "aggregateCount",
+                stops: [
+                  { value: 0, color: colors[0] },
+                  { value: 50, color: colors[1] },
+                  { value: 250, color: colors[2] },
+                  { value: 500, color: colors[3] },
+                  { value: 1000, color: colors[4] }
+                ]
+              }
+            ]
+          }
+        };
+
+        const layer = new FeatureLayer({
+          portalItem: {
+            id: "4a2db78b593b4f32be2e508d47d31b9e"
+          },
+          featureReduction,
+          outFields: ["STATUS"],
+          minScale:0,
+          maxScale:0
+        });
+
+        const map = new Map({
+          basemap: {
+            portalItem: {
+              id: "9cc4e190b8764e8880bd77cb16b9a30a"
+            }
+          },
+          layers: [layer]
+        });
+
+        const view = new MapView({
+          container: "viewDiv",
+          map,
+          center: [-98.28370, 38.53327],
+          scale: 3372861,
+          constraints: {
+            snapToZoom: false
+          }
+        });
+
+        new Legend({
+          view,
+          container: "legendDiv"
+        });
+
+        const layerView = await view.whenLayerView(layer);
+
+        const typeSelect = document.getElementById("type-select");
+        view.ui.add("controls", "top-right");
+
+        typeSelect.addEventListener("change", () => {
+          const value = typeSelect.value;
+          layerView.filter = value === "all" ? null : {
+            where: `STATUS = '${value}'`
+          }
+        });
+
+      })();
+
+    });
+  </script>
+  </head>
+  <body>
+    <div id="viewDiv" class="esri-widget"></div>
+    <div id="controls" class="esri-widget">
+      Filter by well type:
+      <select id="type-select" class="esri-select">
+        <option value="all">all</option>
+        <option value="D&A">Dry and Abandoned</option>
+        <option value="O&G-P&A">Oil, Plugged-Abandoned</option>
+        <option value="OIL">Oil</option>
+        <option value="OTHER">Other</option>
+        <option value="GAS">Gas</option>
+        <option value="LOC">Location</option>
+        <option value="EOR">Enhanced Oil Recovery</option>
+        <option value="GAS-P&A">Gas, Plugged-Abandoned</option>
+        <option value="EOR-P&A">Enhanced Oil Recovery, Plugged-Abandoned</option>
+      </select>
+      <div id="legendDiv"></div>
+    </div>
+  </body>
+</html>
